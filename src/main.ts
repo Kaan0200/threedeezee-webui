@@ -1,9 +1,14 @@
 import './index.css';
 
+import { mountVitePage } from './vite-page';
+
 const app = document.getElementById('app');
 
 if (app) {
   app.innerHTML = `
-    <div class="text-4xl text-center leading-relaxed">threedeezee-webui</div>
+    <div class="stage">
+      <div class="surface"></div>
+    </div>
   `;
+  mountVitePage(app.querySelector<HTMLElement>('.surface')!);
 }
