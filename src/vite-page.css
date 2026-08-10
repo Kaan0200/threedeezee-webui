@@ -246,20 +246,3 @@
     border-right-color: var(--border);
   }
 }
-
-/* ---- tilted surface (the digital-horizons camera effect, in CSS 3D) ---- */
-
-.stage {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  background: #000;
-  perspective: 1100px;
-}
-
-.surface {
-  transform: rotateX(55deg);
-  box-shadow: 0 60px 120px rgba(0, 0, 0, 0.8);
-}

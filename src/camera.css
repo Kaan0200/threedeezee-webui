@@ -1,0 +1,133 @@
+/*
+ * Structural CSS for the tilted (2.5D) camera rig, copied from
+ * dept-of-joined-game (squad-mgmt-tuari). Theme tokens that lived in that
+ * repo's theme.css are inlined here on #viewport.
+ */
+
+#viewport {
+  /* World planes. --perspective must match PERSPECTIVE in camera.ts. */
+  --perspective: 1200px;
+  --world-size: 5000px;
+  --backdrop-size: 12000px;
+  --backdrop-offset: -3500px;
+  --world-dot-pitch: 40px;
+  --world-dot-r: 1.5px;
+  --world-dot-alpha: 0.3;
+  --world-ring-radius: 520px;
+  --world-ring-gap: 18px;
+
+  /* Colour tokens (RGB triplets, combined with per-use alphas below). */
+  --ink: 8 9 11; /* near-black background */
+  --grid: 215 215 242; /* hairline rules */
+  --agent: 63 220 255; /* telemetry cyan — dot field, top-right wash */
+  --zone: 164 114 255; /* command purple — top-left wash */
+  --vital: 208 255 60; /* lime — wash rising from below */
+
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  /* Camera surface: drags must never start a text selection. */
+  user-select: none;
+  /* Atmosphere: three faint signal washes breathing at the frame's edges —
+     purple top-left, cyan top-right, lime rising from below. */
+  background:
+    radial-gradient(
+      110% 65% at 18% -8%,
+      rgb(var(--zone) / 0.11),
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 55% at 85% -5%,
+      rgb(var(--agent) / 0.08),
+      transparent 50%
+    ),
+    radial-gradient(
+      85% 55% at 50% 108%,
+      rgb(var(--vital) / 0.07),
+      transparent 60%
+    ),
+    rgb(var(--ink));
+  /* The lens: establishes the 3D viewing frustum for the tilted camera.
+     Smaller = stronger foreshortening. */
+  perspective: var(--perspective);
+}
+
+#camera {
+  /* Viewport-sized rig so the tilt pivots around the screen centre, not the
+     centre of the 5000px world. Carries the fixed rotateX tilt + the dolly (z). */
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  transform-style: preserve-3d;
+}
+
+#world {
+  width: var(--world-size);
+  height: var(--world-size);
+  position: relative;
+  transform-style: preserve-3d;
+  /* Range-finder dot field: cyan dots on a tighter pitch than the backdrop's
+     100px crossmark cell, so the two planes read at clearly different
+     densities on top of their parallax separation. */
+  background-image: radial-gradient(
+    rgb(var(--agent) / var(--world-dot-alpha)) var(--world-dot-r),
+    transparent var(--world-dot-r)
+  );
+  background-size: var(--world-dot-pitch) var(--world-dot-pitch);
+  /* Edge rings, ring 1 of 3: the deep corner radius rounds the dot field off
+     (it clips the background — NOT overflow:hidden, which would flatten the
+     preserve-3d context) and the border is the strongest ring, hugging the
+     field's edge. */
+  border-radius: var(--world-ring-radius);
+  border: 1px solid rgb(var(--grid) / 0.28);
+}
+
+/* Edge rings 2 and 3: concentric hairlines stepping OUTWARD from the field's
+   border, fading the further out they sit. Pure scenery on the board plane. */
+#world::before,
+#world::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--world-ring-gap));
+  border: 1px solid rgb(var(--grid) / 0.16);
+  border-radius: calc(var(--world-ring-radius) + var(--world-ring-gap));
+  pointer-events: none;
+}
+
+#world::after {
+  inset: calc(-2 * var(--world-ring-gap));
+  border-color: rgb(var(--grid) / 0.09);
+  border-radius: calc(var(--world-ring-radius) + 2 * var(--world-ring-gap));
+}
+
+/* Parallax backdrop: sits behind the board (pushed back along the tilt normal
+   via a negative translateZ in camera.ts) so it pans slower than the world. A
+   muted crossmark grid on a larger cell keeps it clearly "underneath". */
+#backdrop {
+  position: absolute;
+  width: var(--backdrop-size);
+  height: var(--backdrop-size);
+  left: var(--backdrop-offset);
+  top: var(--backdrop-offset);
+  /* No background colour: the backdrop is see-through to the viewport's own
+     dark, so scenery below its plane shows through the grid. */
+  /* Corner registration ticks: each tile draws L-ticks at its four corners;
+     adjacent tiles complete the marks. The stroke is steel at 0.2 — var()
+     can't reach into a data URI, so update it here by hand if it changes. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0h6M0 0v6M100 0h-6M100 0v6M0 100h6M0 100v-6M100 100h-6M100 100v-6' stroke='rgba(138,138,156,0.2)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 100px 100px;
+  /* Children may carry real depth below this plane. */
+  transform-style: preserve-3d;
+  /* Pure scenery — exclude this whole layer (and its children) from hit
+     testing. Pointer events fall through to #viewport, whose listeners drive
+     panning, so nothing is lost and the 12000px plane never gets hit-tested. */
+  pointer-events: none;
+}
+
+/* The content plate: the demo page parked on the world plane. Its layout
+   width is its own (see .vite-screen); this only positions it in the world. */
+#plate {
+  position: absolute;
+  left: calc(50% - 563px); /* horizontally centred: 1126px page at world 2500 */
+  top: 2100px;
+}
