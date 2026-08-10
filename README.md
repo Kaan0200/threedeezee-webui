@@ -1,37 +1,19 @@
-# Vite + React + Typescript + Eslint + Prettier
+# threedeezee-webui
 
-A starter for React with Typescript with the fast Vite and all static code testing with Eslint and formatting with Prettier.
-
-![Vite + React + Typescript + Eslint + Prettier](/resources/screenshot.png)
-
-I found out about Vite and I wanted to have a boilerplate for the technologies that I use. You can find more about these in the following links: [Vite](https://github.com/vitejs/vite), [React](https://reactjs.org/), [Typescript](https://www.typescriptlang.org/), [Eslint](https://eslint.org/), [Prettier](https://prettier.io/).
+A framework-agnostic web UI built with [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/), and [Tailwind CSS](https://tailwindcss.com/), linted with [ESLint](https://eslint.org/) and formatted with [Prettier](https://prettier.io/).
 
 ## Installation
 
-Clone the repo and run `yarn install`
-
-or Run command
-
-```
-npx degit TheSwordBreaker/vite-reactts-eslint-prettier project-name
-```
+Clone the repo and run `pnpm install`
 
 ## Start
 
-After the successfull installation of the packages: `yarn dev`
+After installing the packages: `pnpm dev`
 
-## Steps in Vscode
+## Scripts
 
-#### (works with better with this template)
-
-1. Install Eslint and prettier extension for vs code.
-2. Make Sure Both are enabled
-3. Make sure all packages are Installed. (Mostly Eslint and prettier in node_modules)
-4. Enable formatOnSave of vs code
-5. Open a .tsx file and check if the bottom right corners of vs code have Eslint and Prettier with a double tick
-
-![Screenshot (253)_LI](https://user-images.githubusercontent.com/52120562/162486286-7383a737-d555-4f9b-a4dd-c4a81deb7b96.jpg)
-
-If Everything is Good Then It Should Work, but let me new if something else happens
-
-Made with ❤️ by theSwordBreaker(we Destory all types of sword ⚡)
+- `pnpm dev` — start the Vite dev server
+- `pnpm build` — type-check and build for production
+- `pnpm serve` — preview the production build
+- `pnpm lint` — format with Prettier and lint with ESLint
+- `pnpm type-check` — run the TypeScript compiler
