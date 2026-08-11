@@ -4,6 +4,14 @@
  * coexists with Tailwind and this repo's base styles.
  */
 
+/* The content plate: where the demo page parks on the camera rig's world
+   plane (see main.ts, which centres the camera on it via centerX/centerY). */
+#plate {
+  position: absolute;
+  left: calc(50% - 563px); /* horizontally centred: 1126px page at world 2500 */
+  top: 2100px;
+}
+
 .vite-screen {
   --text: #6b6375;
   --text-h: #08060d;

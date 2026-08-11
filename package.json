@@ -29,8 +29,5 @@
     "vite": "^4.0.0"
   },
   "pre-commit": "lint",
-  "license": "MIT",
-  "dependencies": {
-    "gsap": "^3.15.0"
-  }
+  "license": "MIT"
 }

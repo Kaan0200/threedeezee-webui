@@ -41,7 +41,7 @@ export function trackDrag(
   let lastX = 0;
   let lastY = 0;
 
-  el.addEventListener("pointerdown", (e) => {
+  el.addEventListener('pointerdown', (e) => {
     if (opts.stopPropagation) e.stopPropagation();
     if (opts.button !== undefined && e.button !== opts.button) return;
     if (opts.onStart?.(e) === false) return;
@@ -51,7 +51,7 @@ export function trackDrag(
     el.setPointerCapture(e.pointerId);
   });
 
-  el.addEventListener("pointermove", (e) => {
+  el.addEventListener('pointermove', (e) => {
     if (!dragging) return;
     const { dx, dy } = toPlaneDelta(e.clientX - lastX, e.clientY - lastY);
     lastX = e.clientX;
@@ -65,6 +65,6 @@ export function trackDrag(
     el.releasePointerCapture(e.pointerId);
     opts.onEnd?.();
   };
-  el.addEventListener("pointerup", end);
-  el.addEventListener("pointercancel", end);
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
 }
