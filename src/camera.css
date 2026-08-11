@@ -1,19 +1,22 @@
 /*
  * Structural CSS for the tilted (2.5D) camera rig: geometry and motion only.
- * Every colour the rig renders lives in camera-theme.css — swap or override
- * that file to restyle the world; this one stays colour-agnostic.
+ * Every colour the rig renders lives in camera-theme.css — an optional
+ * import; skip it and bring your own theme, or override its tokens.
+ *
+ * The plane-size custom properties are written by initCamera (camera.ts),
+ * which owns the numbers; the values here are matching fallbacks.
  */
 
-#viewport {
-  /* World plane dimensions. --perspective is written by initCamera
-     (camera.ts), which owns the number. */
+.tdz-viewport {
   --perspective: 1200px;
   --world-size: 5000px;
   --backdrop-size: 12000px;
   --backdrop-offset: -3500px;
 
-  width: 100vw;
-  height: 100vh;
+  /* Fill whatever container the rig was mounted in — sizing is the app's
+     call, not the engine's. */
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   /* Camera surface: drags must never start a text selection. */
   user-select: none;
@@ -22,26 +25,25 @@
   perspective: var(--perspective);
 }
 
-#camera {
+.tdz-camera {
   /* Viewport-sized rig so the tilt pivots around the screen centre, not the
-     centre of the 5000px world. Carries the fixed rotateX tilt + the dolly (z). */
+     centre of the world plane. Carries the fixed rotateX tilt + the dolly (z). */
   width: 100%;
   height: 100%;
   transform-origin: center center;
   transform-style: preserve-3d;
 }
 
-#camera,
-#world,
-#backdrop {
+.tdz-camera,
+.tdz-world,
+.tdz-backdrop {
   /* Wheel and drag retarget the transform on every event; the transition
-     chases the latest target, giving the eased trailing the gsap tweens
-     used to provide (0.4s power2.out). */
+     chases the latest target, an eased trailing follow. */
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform;
 }
 
-#world {
+.tdz-world {
   width: var(--world-size);
   height: var(--world-size);
   position: relative;
@@ -49,8 +51,9 @@
 }
 
 /* Parallax backdrop: pushed back along the tilt normal via a negative
-   translateZ in camera.ts, so it pans slower than the world. */
-#backdrop {
+   translateZ in camera.ts, so it pans slower than the world. Its children
+   are the consumer's parallax scenery. */
+.tdz-backdrop {
   position: absolute;
   width: var(--backdrop-size);
   height: var(--backdrop-size);
@@ -59,7 +62,19 @@
   /* Children may carry real depth below this plane. */
   transform-style: preserve-3d;
   /* Pure scenery — exclude this whole layer (and its children) from hit
-     testing. Pointer events fall through to #viewport, whose listeners drive
-     panning, so nothing is lost and the 12000px plane never gets hit-tested. */
+     testing. Pointer events fall through to the viewport, whose listeners
+     drive panning, so nothing is lost and the huge plane never gets
+     hit-tested. */
   pointer-events: none;
+}
+
+/* The content plate: where createCamera parks the container's adopted
+   children on the world plane. Defaults to the world centre (which is also
+   the default camera centre) so zero-config content lands on screen;
+   reposition it from your own stylesheet to taste. */
+.tdz-plate {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
 }

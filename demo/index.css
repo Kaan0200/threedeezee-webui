@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The rig fills its container; the demo's container is the whole screen. */
+html,
+body,
+#app {
+  height: 100%;
+}
+
 a {
   @apply underline text-blue-600 hover:text-blue-800 visited:text-purple-600;
 }

@@ -5,11 +5,11 @@
  */
 
 /* The content plate: where the demo page parks on the camera rig's world
-   plane (see main.ts, which centres the camera on it via centerX/centerY). */
-#plate {
-  position: absolute;
+   plane (see main.ts, which centres the camera on it via `center`). */
+#app .tdz-plate {
   left: calc(50% - 563px); /* horizontally centred: 1126px page at world 2500 */
   top: 2100px;
+  translate: none;
 }
 
 .vite-screen {

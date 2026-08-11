@@ -5,7 +5,7 @@
  * file), or drop this import and bring your own theme.
  */
 
-#viewport {
+.tdz-viewport {
   /* Colour tokens (RGB triplets, combined with per-use alphas below). */
   --cam-bg: 8 9 11; /* near-black background */
   --cam-line: 215 215 242; /* hairline rules and ticks */
@@ -31,7 +31,7 @@
     rgb(var(--cam-bg));
 }
 
-#world {
+.tdz-world {
   /* Dot field on a tighter pitch than the backdrop's 100px tick cell, so the
      two planes read at clearly different densities on top of their parallax
      separation. */
@@ -50,8 +50,8 @@
 
 /* Edge rings 2 and 3: concentric hairlines stepping OUTWARD from the field's
    border, fading the further out they sit. Pure scenery on the board plane. */
-#world::before,
-#world::after {
+.tdz-world::before,
+.tdz-world::after {
   content: '';
   position: absolute;
   inset: calc(-1 * var(--world-ring-gap));
@@ -60,7 +60,7 @@
   pointer-events: none;
 }
 
-#world::after {
+.tdz-world::after {
   inset: calc(-2 * var(--world-ring-gap));
   border-color: rgb(var(--cam-line) / 0.09);
   border-radius: calc(var(--world-ring-radius) + 2 * var(--world-ring-gap));
@@ -71,7 +71,7 @@
    backdrop stays see-through to the viewport's own wash. The stroke is
    --cam-line at 0.2, but var() can't reach into a data URI, so update it here
    by hand if the token changes. */
-#backdrop {
+.tdz-backdrop {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0h6M0 0v6M100 0h-6M100 0v6M0 100h6M0 100v-6M100 100h-6M100 100v-6' stroke='rgba(215,215,242,0.2)' stroke-width='1'/%3E%3C/svg%3E");
   background-size: 100px 100px;
 }
