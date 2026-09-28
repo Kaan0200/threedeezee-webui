@@ -1,39 +1,25 @@
 import './index.css';
 import './camera.css';
+import './demo.css';
 
-import { initCamera } from './camera';
+import { createCanvas } from './camera';
 import { mountVitePage } from './vite-page';
 
 const app = document.getElementById('app');
 
 if (app) {
-  // The camera rig stack (see camera.ts): lens > tilt/dolly rig > ground
-  // plane (dot field + content layer), with the parallax backdrop behind it. The demo page rides the
-  // world on the #plate, positioned by camera.css.
-  app.innerHTML = `
-    <div id="viewport">
-      <div id="camera">
-        <div id="backdrop"></div>
-        <div id="ground"></div>
-        <div id="world">
-          <div id="origin-axis"></div>
-          <div id="plate"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  mountVitePage(app.querySelector<HTMLElement>('#plate')!);
-
-  initCamera({
-    viewport: app.querySelector<HTMLElement>('#viewport')!,
-    camera: app.querySelector<HTMLElement>('#camera')!,
-    world: app.querySelector<HTMLElement>('#world')!,
-    ground: app.querySelector<HTMLElement>('#ground')!,
-    backdrop: app.querySelector<HTMLElement>('#backdrop')!,
+  const { world } = createCanvas(app, {
     // Land looking at the top of the page plate (plate top sits at 2100 —
-    // see camera.css — so this centres a point a little way down the hero).
+    // see demo.css — so this centres a point a little way down the hero).
     centerX: 2500,
     centerY: 2400,
   });
+
+  // The demo page rides the world on the #plate, positioned by demo.css,
+  // with a debug axis standing up at the starting centre.
+  world.innerHTML = `
+    <div id="origin-axis"></div>
+    <div id="plate"></div>
+  `;
+  mountVitePage(world.querySelector<HTMLElement>('#plate')!);
 }

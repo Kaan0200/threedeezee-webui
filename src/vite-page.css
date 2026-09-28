@@ -1,9 +1,3 @@
-/*
- * The out-of-the-box create-vite (react-ts template) starter page, ported to
- * vanilla TS. Template's index.css + App.css, scoped under .vite-screen so it
- * coexists with Tailwind and this repo's base styles.
- */
-
 .vite-screen {
   --text: #6b6375;
   --text-h: #08060d;

@@ -1,12 +1,11 @@
 /*
  * Structural CSS for the tilted (2.5D) camera rig, copied from
  * dept-of-joined-game (squad-mgmt-tuari). Theme tokens that lived in that
- * repo's theme.css are inlined here on #viewport.
+ * repo's theme.css are inlined here on .tdz-viewport.
  */
 
-#viewport {
-  /* World planes. --perspective must match PERSPECTIVE in camera.ts. */
-  --perspective: 1200px;
+.tdz-viewport {
+  /* World planes. */
   --world-size: 5000px;
   /* --world-dot-pitch must match GROUND_PITCH in camera.ts. */
   --world-dot-pitch: 40px;
@@ -20,8 +19,9 @@
   --zone: 164 114 255; /* command purple — top-left wash */
   --vital: 208 255 60; /* lime — wash rising from below */
 
-  width: 100vw;
-  height: 100vh;
+  /* Fills its container, which must have a size. */
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   /* Camera surface: drags must never start a text selection. */
   user-select: none;
@@ -44,12 +44,11 @@
       transparent 60%
     ),
     rgb(var(--ink));
-  /* The lens: establishes the 3D viewing frustum for the tilted camera.
-     Smaller = stronger foreshortening. */
-  perspective: var(--perspective);
+  /* The lens (CSS perspective) is set inline from the `perspective` option
+     in camera.ts, so the JS maths and the rendering share one value. */
 }
 
-#camera {
+.tdz-camera {
   /* Viewport-sized rig so the tilt pivots around the screen centre, not the
      centre of the 5000px world. Carries the fixed rotateX tilt + the dolly (z). */
   width: 100%;
@@ -60,7 +59,7 @@
 
 /* The content layer. Pan is unbounded, so its size is only a layout box for
    positioning content — nothing clips or paints at its edges. */
-#world {
+.tdz-world {
   width: var(--world-size);
   height: var(--world-size);
   position: relative;
@@ -71,7 +70,7 @@
    than the backdrop's 100px crossmark cell, so the two planes read at clearly
    different densities on top of their parallax separation. Sized to cover the
    lens and wrapped by camera.ts, so it never runs out. */
-#ground {
+.tdz-ground {
   position: absolute;
   background-image: radial-gradient(
     rgb(var(--agent) / var(--world-dot-alpha)) var(--world-dot-r),
@@ -84,8 +83,8 @@
 /* Parallax backdrop: sits behind the board (pushed back along the tilt normal
    via a negative translateZ in camera.ts) so it pans slower than the world. A
    muted crossmark grid on a larger cell keeps it clearly "underneath". Sized
-   and wrapped by camera.ts, like #ground. */
-#backdrop {
+   and wrapped by camera.ts, like .tdz-ground. */
+.tdz-backdrop {
   position: absolute;
   /* No background colour: the backdrop is see-through to the viewport's own
      dark, so scenery below its plane shows through the grid. */
@@ -98,32 +97,7 @@
   /* Children may carry real depth below this plane. */
   transform-style: preserve-3d;
   /* Pure scenery — exclude this whole layer (and its children) from hit
-     testing. Pointer events fall through to #viewport, whose listeners drive
+     testing. Pointer events fall through to .tdz-viewport, whose listeners drive
      panning, so nothing is lost and the huge plane never gets hit-tested. */
   pointer-events: none;
-}
-
-/* Debug marker: a line standing up out of the ground plane at the camera's
-   starting centre (world 2500, 2400 — centerX/centerY in main.ts), running
-   along the plane's z axis (toward the lens). It's laid out along y from that
-   point, then swung 90deg about its top edge to point up. */
-#origin-axis {
-  --axis-length: 300px;
-  position: absolute;
-  left: 2499px;
-  top: 2400px;
-  width: 2px;
-  height: var(--axis-length);
-  background: rgb(var(--vital));
-  transform-origin: top center;
-  transform: rotateX(90deg);
-  pointer-events: none;
-}
-
-/* The content plate: the demo page parked on the world plane. Its layout
-   width is its own (see .vite-screen); this only positions it in the world. */
-#plate {
-  position: absolute;
-  left: calc(50% - 563px); /* horizontally centred: 1126px page at world 2500 */
-  top: 2100px;
 }

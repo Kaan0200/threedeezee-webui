@@ -9,3 +9,8 @@ a {
 button {
   @apply m-2 p-2 bg-purple-400 border-purple-400 border-2 rounded hover:border-purple-600;
 }
+
+/* The canvas fills its container, so give the demo's container the screen. */
+#app {
+  height: 100vh;
+}
