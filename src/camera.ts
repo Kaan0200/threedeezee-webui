@@ -3,11 +3,15 @@
  *
  *   #viewport   the lens — establishes the perspective frustum
  *   #camera     viewport-sized rig carrying the fixed rotateX tilt + the dolly (z)
- *   #world      the pannable ground plane the content sits on
- *   #backdrop   parallax plane pushed back along the tilt normal
+ *   #world      the pannable content layer, on the ground plane
+ *   #ground     the ground plane's dot field (wraps, so it never runs out)
+ *   #backdrop   parallax plane pushed back along the tilt normal (also wraps)
  *
  * Wheel dollies the rig toward/away from the surface; a drag anywhere pans the
- * world across the tilted ground plane. Structural CSS lives in camera.css.
+ * world across the tilted ground plane. Pan is unbounded: the patterned planes
+ * only ever translate by the pan modulo their tile pitch, so they stay put
+ * under the lens while the content layer takes the real pan. Structural CSS
+ * lives in camera.css.
  */
 import gsap from 'gsap';
 
@@ -25,6 +29,8 @@ const Z_MAX = Math.min(900, PERSPECTIVE - 300);
 /** How far the backdrop sits behind the board along the tilt normal.
     Deeper = stronger parallax. */
 const BACKDROP_DEPTH = 500;
+const GROUND_PITCH = 40; // must match --world-dot-pitch in camera.css.
+const BACKDROP_PITCH = 100; // must match #backdrop's background-size in camera.css.
 
 type CameraState = {
   panX: number; // world translation along the ground (screen-horizontal)
@@ -48,11 +54,12 @@ export function initCamera(opts: {
   viewport: HTMLElement;
   camera: HTMLElement;
   world: HTMLElement;
+  ground: HTMLElement;
   backdrop: HTMLElement;
   centerX: number;
   centerY: number;
 }): CameraRig {
-  const { viewport, camera, world, backdrop } = opts;
+  const { viewport, camera, world, ground, backdrop } = opts;
 
   const state: CameraState = {
     panX: 0,
@@ -68,14 +75,53 @@ export function initCamera(opts: {
   const startRect = viewport.getBoundingClientRect();
   state.panX = startRect.width / 2 - opts.centerX;
   state.panY = startRect.height / 2 - opts.centerY;
-  gsap.set(world, { x: state.panX, y: state.panY });
-  // Same pan as the world, but pushed back along the tilt normal (-z) so
-  // perspective moves it slower — a physical parallax under the board.
-  gsap.set(backdrop, {
-    x: state.panX,
-    y: state.panY,
-    z: -BACKDROP_DEPTH,
-  });
+  // The backdrop is pushed back along the tilt normal (-z) so perspective
+  // moves its pan slower — a physical parallax under the board.
+  gsap.set(backdrop, { z: -BACKDROP_DEPTH });
+
+  // Size a wrapping plane (`depth` behind the ground along the tilt normal) to
+  // cover all of it the lens can see when dollied fully out, centred under
+  // the screen. Its offset snaps to the tile pitch so the pattern stays
+  // registered to world coordinates across resizes.
+  function fitPlane(el: HTMLElement, pitch: number, depth: number) {
+    const { width, height } = viewport.getBoundingClientRect();
+    // Ray/plane intersection for the lens ray through the top screen edge —
+    // the farthest-reaching one: it lands t× the screen distance out.
+    const t =
+      (PERSPECTIVE - Z_MIN + depth / Math.cos(TILT_RAD)) /
+      (PERSPECTIVE - (height / 2) * Math.tan(TILT_RAD));
+    const reach = Math.max(
+      (t * width) / 2,
+      ((t * height) / 2 + depth * Math.sin(TILT_RAD)) / Math.cos(TILT_RAD),
+    );
+    // Margin: up to half a pitch of snap plus a full pitch of wrap travel.
+    const half = Math.ceil(reach / pitch) * pitch + 2 * pitch;
+    el.style.width = el.style.height = `${2 * half}px`;
+    el.style.left = `${Math.round(width / 2 / pitch) * pitch - half}px`;
+    el.style.top = `${Math.round(height / 2 / pitch) * pitch - half}px`;
+  }
+  function fitPlanes() {
+    fitPlane(ground, GROUND_PITCH, 0);
+    fitPlane(backdrop, BACKDROP_PITCH, BACKDROP_DEPTH);
+  }
+  fitPlanes();
+  window.addEventListener('resize', fitPlanes);
+
+  const wrapGround = gsap.utils.wrap(-GROUND_PITCH, 0);
+  const wrapBackdrop = gsap.utils.wrap(-BACKDROP_PITCH, 0);
+
+  // The rendered pan, eased toward state.panX/panY by applyPan.
+  const view = { x: state.panX, y: state.panY };
+
+  // The content layer takes the real pan; the patterned planes take it modulo
+  // their pitch, which looks identical (whole tiles are indistinguishable)
+  // but keeps them from ever sliding out from under the lens.
+  function renderPan() {
+    gsap.set(world, { x: view.x, y: view.y });
+    gsap.set(ground, { x: wrapGround(view.x), y: wrapGround(view.y) });
+    gsap.set(backdrop, { x: wrapBackdrop(view.x), y: wrapBackdrop(view.y) });
+  }
+  renderPan();
 
   // Convert a screen-space pointer delta into a delta on the tilted ground
   // plane, undoing (1) the perspective magnification from the current dolly and
@@ -94,21 +140,16 @@ export function initCamera(opts: {
 
   // Pan slides the world across the tilted ground plane. The backdrop gets the
   // same translation but, being deeper, moves slower on screen (parallax). Its
-  // z channel is preserved by tween-ing only x/y.
+  // z channel is preserved by setting only x/y. One tween drives all three
+  // layers so the wrapped planes stay locked to the content mid-ease.
   function applyPan() {
-    gsap.to(world, {
+    gsap.to(view, {
       x: state.panX,
       y: state.panY,
       duration: 0.4,
       ease: 'power2.out',
       overwrite: true,
-    });
-    gsap.to(backdrop, {
-      x: state.panX,
-      y: state.panY,
-      duration: 0.4,
-      ease: 'power2.out',
-      overwrite: true,
+      onUpdate: renderPan,
     });
   }
 
