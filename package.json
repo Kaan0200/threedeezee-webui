@@ -26,6 +26,8 @@
     "build": "tsc && vite build && tsc -p tsconfig.build.json",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "example:dev": "vite --config example/vite.config.ts",
+    "example:build": "vite build --config example/vite.config.ts",
     "lint:fix": "eslint ./src --ext .js,.ts --quiet --fix --ignore-path ./.gitignore",
     "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,ts,css,md,json}\" ",
     "lint": "pnpm lint:format && pnpm lint:fix ",
