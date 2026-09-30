@@ -1,21 +1,17 @@
-# threedeezee-webui
+# ThreeDeeZee
 
-A framework-agnostic web UI built with [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/), and [Tailwind CSS](https://tailwindcss.com/), linted with [ESLint](https://eslint.org/) and formatted with [Prettier](https://prettier.io/).
+_Component library for creating 3D Zooming UIs. Half design and half framework, these components add depth and a new level of physicallity to your website!_
 
-## Installation
+Built using [GSAP](https://gsap.com) animation library and typescript while intentionally kept light and flexible. Supporting React Components and Web Components.
 
-Clone the repo and run `pnpm install`
+## Tooling
 
-## Start
+- Use Storybook via 'pnpm storybook' to view stories
+- Use the example static site to view a more complex example
 
-After installing the packages: `pnpm dev`
-
-## Scripts
-
-- `pnpm dev` — start the Vite dev server
-- `pnpm build` — type-check and build for production
-- `pnpm serve` — preview the production build
-- `pnpm lint` — format with Prettier and lint with ESLint
-- `pnpm type-check` — run the TypeScript compiler
+## Documents
 
 Licensed under the [Apache License 2.0](LICENSE).
+See the [AI Policy](AI_POLICY.md).
+
+_Human written._

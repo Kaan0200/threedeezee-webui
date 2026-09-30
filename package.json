@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "files": [
     "dist",
-    "NOTICE"
+    "NOTICE",
+    "AI_POLICY.md"
   ],
   "module": "./dist/threedeezee.mjs",
   "types": "./dist/index.d.ts",
