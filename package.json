@@ -2,7 +2,8 @@
   "name": "threedeezee",
   "version": "0.1.0",
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "module": "./dist/threedeezee.mjs",
   "types": "./dist/index.d.ts",
@@ -50,7 +51,7 @@
     "vite": "^8.3.1"
   },
   "pre-commit": "lint",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "gsap": "^3.15.0"
   }

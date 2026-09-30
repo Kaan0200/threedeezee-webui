@@ -17,3 +17,5 @@ After installing the packages: `pnpm dev`
 - `pnpm serve` — preview the production build
 - `pnpm lint` — format with Prettier and lint with ESLint
 - `pnpm type-check` — run the TypeScript compiler
+
+Licensed under the [Apache License 2.0](LICENSE).
