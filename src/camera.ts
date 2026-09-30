@@ -52,7 +52,8 @@ export type CanvasOptions = {
   tilt?: number;
   /** Lens distance, px. Smaller = stronger foreshortening. */
   perspective?: number;
-  /** px of dolly travel per wheel notch. */
+  /** px of dolly travel per mouse-wheel notch (100px of wheel delta).
+      Touchpads scroll in smaller deltas, so they dolly proportionally. */
   dollyStep?: number;
   /** Dollied fully out (far from the surface). */
   zMin?: number;
@@ -264,7 +265,11 @@ export function createCanvas(
     // Scroll up = dolly in (toward the surface); scroll down = dolly out.
     // NOTE: this dollies toward the screen centre, not the cursor — cursor-
     // anchored dolly on a tilted plane needs ray/plane un-projection (TODO).
-    const deltaZ = e.deltaY > 0 ? -dollyStep : dollyStep;
+    // Proportional to the wheel delta, so a touchpad's stream of small deltas
+    // doesn't each count as a full notch. Line-mode deltas (Firefox mice)
+    // come in ~3 per notch; scale them up to pixels.
+    const deltaPx = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? e.deltaY * 33 : e.deltaY;
+    const deltaZ = (-deltaPx / 100) * dollyStep;
     state.z = Math.min(Math.max(state.z + deltaZ, zMin), zCap);
 
     // Dolly moves the whole tilted rig toward/away from the lens; perspective

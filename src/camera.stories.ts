@@ -1,11 +1,9 @@
 import './camera.css';
-import './demo.css';
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
 
 import type { Canvas, CanvasOptions } from './camera';
 import { createCanvas } from './camera';
-import { mountVitePage } from './vite-page';
 
 // Plain-HTML stories get no cleanup hook, and every control change re-renders,
 // so tear down the previous canvas before building the next.
@@ -19,11 +17,6 @@ const meta: Meta<CanvasOptions> = {
     const container = document.createElement('div');
     container.style.height = '100vh';
     current = createCanvas(container, options);
-    current.world.innerHTML = `
-      <div id="origin-axis"></div>
-      <div id="plate"></div>
-    `;
-    mountVitePage(current.world.querySelector<HTMLElement>('#plate')!);
     // Outline the pannable extent so the edge stops are visible; an unbounded
     // axis spans the whole layout box.
     const { worldWidth, worldHeight } = options;
@@ -40,7 +33,8 @@ const meta: Meta<CanvasOptions> = {
     }
     return container;
   },
-  // Defaults match createCanvas's, except the centre, which lands on the plate.
+  // Defaults match createCanvas's, except the centre: mid-way across the
+  // bounded stories' 5000×5000 world.
   args: {
     tilt: 30,
     perspective: 1200,
@@ -49,7 +43,7 @@ const meta: Meta<CanvasOptions> = {
     zMax: 900,
     backdropDepth: 500,
     centerX: 2500,
-    centerY: 2400,
+    centerY: 2500,
   },
   argTypes: {
     // Past ~60° the far edge of a tall viewport starts reaching the horizon.
