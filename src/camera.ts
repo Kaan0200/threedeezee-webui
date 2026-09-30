@@ -19,8 +19,33 @@ import gsap from 'gsap';
 import { trackDrag } from './drag';
 import type { ToPlaneDelta } from './drag';
 
-const GROUND_PITCH = 40; // must match --world-dot-pitch in camera.css.
-const BACKDROP_PITCH = 100; // must match .tdz-backdrop's background-size in camera.css.
+/** A wrapping surface: one SVG tile, repeated every `pitch` px. */
+export type Surface = {
+  /** Tile size, px. Also the wrap step as the surface pans. */
+  pitch: number;
+  /** SVG markup for one tile, drawn in a pitch × pitch box (it's stretched to
+      fit). The shape and its colour live here. */
+  tile: string;
+};
+
+// Dark grey dots on a tighter pitch than the backdrop's crossmark cell, so the
+// two planes read at clearly different densities on top of their parallax.
+const DEFAULT_GROUND: Surface = {
+  pitch: 40,
+  tile: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+    <circle cx="20" cy="20" r="1.5" fill="#555555"/>
+  </svg>`,
+};
+
+// Corner registration ticks: each tile draws L-ticks at its four corners;
+// adjacent tiles complete the marks, in a darker grey than the dots.
+const DEFAULT_BACKDROP: Surface = {
+  pitch: 100,
+  tile: `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+    <path d="M0 0h6M0 0v6M100 0h-6M100 0v6M0 100h6M0 100v-6M100 100h-6M100 100v-6"
+      stroke="#333333" stroke-width="1"/>
+  </svg>`,
+};
 
 export type CanvasOptions = {
   /** Fixed camera pitch, degrees. 0 = top-down, 90 = horizon. */
@@ -45,6 +70,10 @@ export type CanvasOptions = {
       either to leave pan unbounded on that axis. */
   worldWidth?: number;
   worldHeight?: number;
+  /** Pattern on the ground plane, under the content. Default: dark grey dots. */
+  ground?: Surface;
+  /** Pattern on the parallax backdrop. Default: darker grey corner ticks. */
+  backdrop?: Surface;
 };
 
 export type Canvas = {
@@ -81,6 +110,8 @@ export function createCanvas(
     centerY = 0,
     worldWidth,
     worldHeight,
+    ground: groundSurface = DEFAULT_GROUND,
+    backdrop: backdropSurface = DEFAULT_BACKDROP,
   } = options;
   const tiltRad = (tilt * Math.PI) / 180;
   const zCap = Math.min(zMax, perspective - 300);
@@ -121,6 +152,13 @@ export function createCanvas(
   // moves its pan slower — a physical parallax under the board.
   gsap.set(backdrop, { z: -backdropDepth });
 
+  function paintPlane(el: HTMLElement, { pitch, tile }: Surface) {
+    el.style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(tile)}")`;
+    el.style.backgroundSize = `${pitch}px ${pitch}px`;
+  }
+  paintPlane(ground, groundSurface);
+  paintPlane(backdrop, backdropSurface);
+
   // Size a wrapping plane (`depth` behind the ground along the tilt normal) to
   // cover all of it the lens can see when dollied fully out, centred under
   // the screen. Its offset snaps to the tile pitch so the pattern stays
@@ -142,8 +180,8 @@ export function createCanvas(
     el.style.left = `${Math.round(width / 2 / pitch) * pitch - half}px`;
     el.style.top = `${Math.round(height / 2 / pitch) * pitch - half}px`;
   }
-  const wrapGround = gsap.utils.wrap(-GROUND_PITCH, 0);
-  const wrapBackdrop = gsap.utils.wrap(-BACKDROP_PITCH, 0);
+  const wrapGround = gsap.utils.wrap(-groundSurface.pitch, 0);
+  const wrapBackdrop = gsap.utils.wrap(-backdropSurface.pitch, 0);
 
   // The rendered pan, eased toward state.panX/panY by applyPan.
   const view = { x: state.panX, y: state.panY };
@@ -162,8 +200,8 @@ export function createCanvas(
   // also centres the requested world point. Runs before paint: no flash.
   let centred = false;
   const resizeObserver = new ResizeObserver(() => {
-    fitPlane(ground, GROUND_PITCH, 0);
-    fitPlane(backdrop, BACKDROP_PITCH, backdropDepth);
+    fitPlane(ground, groundSurface.pitch, 0);
+    fitPlane(backdrop, backdropSurface.pitch, backdropDepth);
     if (centred) return;
     centred = true;
     const { width, height } = viewport.getBoundingClientRect();

@@ -99,3 +99,25 @@ export const Bounded: StoryObj<CanvasOptions> = {
   name: 'Edges: bounded width and height',
   args: { worldWidth: 5000, worldHeight: 5000 },
 };
+
+// Swapped surface patterns: each is one SVG tile, so shape and colour are
+// whatever the markup draws. Pitch sets both the tile size and wrap step.
+export const CustomSurfaces: StoryObj<CanvasOptions> = {
+  name: 'Custom surfaces',
+  args: {
+    // Backdrop twice as deep as the default 500, for stronger parallax.
+    backdropDepth: 1000,
+    ground: {
+      pitch: 60,
+      tile: `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60">
+        <rect x="27" y="27" width="6" height="6" fill="#5b2a9e"/>
+      </svg>`,
+    },
+    backdrop: {
+      pitch: 240,
+      tile: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240">
+        <path d="M0 .5h240M.5 0v240" stroke="#0a7c8c"/>
+      </svg>`,
+    },
+  },
+};
