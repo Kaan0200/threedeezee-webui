@@ -1,10 +1,28 @@
 {
-  "name": "threedeezee-webui",
-  "version": "0.0.0",
+  "name": "threedeezee",
+  "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
+  "module": "./dist/threedeezee.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/threedeezee.mjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kaan0200/threedeezee-webui.git"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "serve": "vite preview",
+    "build": "tsc && vite build && tsc -p tsconfig.build.json",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:fix": "eslint ./src --ext .js,.ts --quiet --fix --ignore-path ./.gitignore",
