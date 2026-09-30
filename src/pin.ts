@@ -7,8 +7,16 @@
  */
 import type { Canvas } from './camera';
 
-const FLAG_WIDTH = 24;
-const FLAG_HEIGHT = 16;
+export type FlagOptions = {
+  /** px. Default 24 × 16. */
+  width?: number;
+  height?: number;
+  /** Any CSS colour. Default: the pin's colour. */
+  color?: string;
+  /** Any CSS clip-path, e.g. 'polygon(0 0, 100% 50%, 0 100%)' for a pennant.
+      Clicks only land inside it. Default: the full rectangle. */
+  shape?: string;
+};
 
 export type PinOptions = {
   /** World px of the pin's base, where it meets the ground. */
@@ -20,8 +28,9 @@ export type PinOptions = {
   width?: number;
   /** Any CSS colour. Default: currentColor. */
   color?: string;
-  /** Hang a small clickable flag off the tip, in the pin's colour. */
-  flag?: boolean;
+  /** Hang a small clickable flag off the tip: true for the default, or
+      options to customise it. */
+  flag?: boolean | FlagOptions;
   /** Passed straight through as HTML attributes: class, id, style, data-*,
       aria-*, ... Placement, size and colour above win over any in `style`. */
   attributes?: Record<string, string>;
@@ -40,7 +49,7 @@ export function createPin(canvas: Canvas, options: PinOptions): Pin {
     height,
     width = 2,
     color = 'currentColor',
-    flag: withFlag = false,
+    flag: flagOptions = false,
     attributes = {},
   } = options;
 
@@ -63,16 +72,23 @@ export function createPin(canvas: Canvas, options: PinOptions): Pin {
   });
 
   let flag: HTMLDivElement | undefined;
-  if (withFlag) {
+  if (flagOptions) {
+    const {
+      width: flagWidth = 24,
+      height: flagHeight = 16,
+      color: flagColor = color,
+      shape = 'none',
+    } = flagOptions === true ? {} : flagOptions;
     flag = document.createElement('div');
     Object.assign(flag.style, {
       position: 'absolute',
       // Off the pole's right side, level with the tip.
       left: '100%',
       top: '0',
-      width: `${FLAG_WIDTH}px`,
-      height: `${FLAG_HEIGHT}px`,
-      background: color,
+      width: `${flagWidth}px`,
+      height: `${flagHeight}px`,
+      background: flagColor,
+      clipPath: shape,
       pointerEvents: 'auto',
       cursor: 'pointer',
     });

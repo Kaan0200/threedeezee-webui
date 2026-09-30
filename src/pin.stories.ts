@@ -22,10 +22,12 @@ const meta: Meta<PinOptions> = {
     container.style.height = '100vh';
     current = createCanvas(container, { centerX: options.x, centerY: options.y });
     const { flag } = createPin(current, options);
-    flag?.addEventListener('click', () => {
-      const on = flag.style.background === 'white';
-      flag.style.background = on ? options.color ?? 'currentColor' : 'white';
-    });
+    if (flag) {
+      const original = flag.style.background;
+      flag.addEventListener('click', () => {
+        flag.style.background = flag.style.background === 'white' ? original : 'white';
+      });
+    }
     return container;
   },
   args: { x: 2500, y: 2500, height: 300, width: 2 },
@@ -35,7 +37,8 @@ const meta: Meta<PinOptions> = {
     height: { control: { type: 'range', min: 0, max: 1000, step: 10 } },
     width: { control: { type: 'range', min: 1, max: 40, step: 1 } },
     color: { control: 'color' },
-    flag: { control: 'boolean' },
+    // true, or { width, height, color, shape } — shape is a CSS clip-path.
+    flag: { control: 'object' },
   },
 };
 
@@ -43,4 +46,17 @@ export default meta;
 
 export const Red: StoryObj<PinOptions> = {
   args: { color: 'red', flag: true },
+};
+
+// A custom flag: a blue triangular pennant on the red pin.
+export const Pennant: StoryObj<PinOptions> = {
+  args: {
+    color: 'red',
+    flag: {
+      width: 40,
+      height: 24,
+      color: 'blue',
+      shape: 'polygon(0 0, 100% 50%, 0 100%)',
+    },
+  },
 };
