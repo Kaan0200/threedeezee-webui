@@ -24,6 +24,20 @@ const meta: Meta<CanvasOptions> = {
       <div id="plate"></div>
     `;
     mountVitePage(current.world.querySelector<HTMLElement>('#plate')!);
+    // Outline the pannable extent so the edge stops are visible; an unbounded
+    // axis spans the whole layout box.
+    const { worldWidth, worldHeight } = options;
+    if (worldWidth !== undefined || worldHeight !== undefined) {
+      const bounds = document.createElement('div');
+      bounds.style.cssText = `
+        position: absolute; left: 0; top: 0;
+        width: ${worldWidth !== undefined ? `${worldWidth}px` : '100%'};
+        height: ${worldHeight !== undefined ? `${worldHeight}px` : '100%'};
+        outline: 2px dashed rgb(var(--vital) / 0.6);
+        pointer-events: none;
+      `;
+      current.world.appendChild(bounds);
+    }
     return container;
   },
   // Defaults match createCanvas's, except the centre, which lands on the plate.
@@ -69,4 +83,19 @@ export const PanOnly: StoryObj<CanvasOptions> = {
 export const LockedSize: StoryObj<CanvasOptions> = {
   name: 'Locked size (width only)',
   args: { worldWidth: 5000 },
+};
+
+// Edge behaviour: no bounds on either axis. Pan runs forever in every
+// direction; the ground and backdrop wrap, so they never run out.
+export const InfiniteScroll: StoryObj<CanvasOptions> = {
+  name: 'Edges: infinite scroll',
+  args: { worldWidth: undefined, worldHeight: undefined },
+};
+
+// Edge behaviour: pan bounded on both axes to a 5000×5000 world (outlined).
+// The world point under the screen centre stops at each edge, so up to half
+// a viewport past the outline stays visible.
+export const Bounded: StoryObj<CanvasOptions> = {
+  name: 'Edges: bounded width and height',
+  args: { worldWidth: 5000, worldHeight: 5000 },
 };

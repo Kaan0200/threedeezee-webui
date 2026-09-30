@@ -13,37 +13,16 @@
   --world-dot-alpha: 0.3;
 
   /* Colour tokens (RGB triplets, combined with per-use alphas below). */
-  --ink: 8 9 11; /* near-black background */
-  --grid: 215 215 242; /* hairline rules */
-  --agent: 63 220 255; /* telemetry cyan — dot field, top-right wash */
-  --zone: 164 114 255; /* command purple — top-left wash */
-  --vital: 208 255 60; /* lime — wash rising from below */
+  --agent: 63 220 255; /* telemetry cyan — dot field */
+  --vital: 208 255 60; /* lime — debug markers */
 
-  /* Fills its container, which must have a size. */
+  /* Fills its container, which must have a size. No background: the
+     container's own shows through, so style that instead. */
   width: 100%;
   height: 100%;
   overflow: hidden;
   /* Camera surface: drags must never start a text selection. */
   user-select: none;
-  /* Atmosphere: three faint signal washes breathing at the frame's edges —
-     purple top-left, cyan top-right, lime rising from below. */
-  background:
-    radial-gradient(
-      110% 65% at 18% -8%,
-      rgb(var(--zone) / 0.11),
-      transparent 55%
-    ),
-    radial-gradient(
-      90% 55% at 85% -5%,
-      rgb(var(--agent) / 0.08),
-      transparent 50%
-    ),
-    radial-gradient(
-      85% 55% at 50% 108%,
-      rgb(var(--vital) / 0.07),
-      transparent 60%
-    ),
-    rgb(var(--ink));
   /* The lens (CSS perspective) is set inline from the `perspective` option
      in camera.ts, so the JS maths and the rendering share one value. */
 }
