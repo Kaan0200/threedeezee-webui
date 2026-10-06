@@ -5,21 +5,25 @@ _Component library for creating 3D Zooming UIs. Half design and half framework, 
 Built using [GSAP](https://gsap.com) animation library and typescript while intentionally kept light and flexible. Supporting React Components and Web Components.
 
 ## Features
+
 - Click n' Drag panning
 - Scrolling and zooooming
 - Draggable and static panels
 - Z-Index Flag/Pins
 - Parallax surfaces emphasize depth
 
-
 **Check it out!**
 ![Screenshot of React Example](react-example-shot.png)
 
-
 ## Commands
 
+_Replace the `*` with `dev` or `build` to construct those examples._
+
 - Use Storybook via `pnpm storybook` to view stories
-- Use examples via `pnpm example:html:dev` or `pnpm example:react:dev` to view examples
+- Check out the different framework examples
+  - Raw JS and HTML via `pnpm example:html:*`
+  - React components `pnpm example:react:*`
+  - Web Components with Lit `pnpm example:lit:*`
 
 ## Documents
 
