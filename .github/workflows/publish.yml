@@ -1,9 +1,12 @@
-name: Publish to npm
+name: Stage npm release
 
-# Publishes when a version tag is pushed (npm refuses to re-publish an
+# Stages a release when a version tag is pushed (npm refuses to re-publish an
 # existing version, so publishing can't run on every push to main):
 #   npm version patch   # bumps package.json and creates the v* tag
 #   git push --follow-tags
+# The staged version is NOT live until a maintainer approves it with 2FA, on
+# npmjs.com or via `npm stage approve` — the trusted publisher is stage-only,
+# with neither "Allow npm publish" nor "Allow npm dist-tag" granted.
 on:
   push:
     tags: ['v*']
@@ -28,6 +31,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      # npm (not pnpm) does the publish: npm ≥ 11.5 handles the trusted-publishing
-      # OIDC exchange itself and attaches a provenance attestation automatically.
-      - run: npm publish
+      # npm (not pnpm) talks to the registry: it handles the trusted-publishing
+      # OIDC exchange itself and attaches a provenance attestation. Staging
+      # needs npm ≥ 11.15, newer than some Node-bundled versions.
+      - run: npm install -g npm@latest
+      - run: npm stage publish
