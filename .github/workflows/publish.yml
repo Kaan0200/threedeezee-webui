@@ -1,38 +1,91 @@
 name: Stage npm release
 
-# Stages a release when a version tag is pushed (npm refuses to re-publish an
-# existing version, so publishing can't run on every push to main):
-#   npm version patch   # bumps package.json and creates the v* tag
-#   git push --follow-tags
-# The staged version is NOT live until a maintainer approves it with 2FA, on
-# npmjs.com or via `npm stage approve` — the trusted publisher is stage-only,
-# with neither "Allow npm publish" nor "Allow npm dist-tag" granted.
+# Branch-driven releases: merging a PR into `stable` is the release button.
+# The push to `stable` stamps the merge commit with v<package.json version>,
+# creates a GitHub Release, and stages the version on npm. Nothing goes live
+# until a maintainer approves it with 2FA (npmjs.com or `npm stage approve`) —
+# the trusted publisher is stage-only, with neither "Allow npm publish" nor
+# "Allow npm dist-tag" granted.
+#
+# npm versions are immutable, so each release PR must bump "version" in
+# package.json; the version-check job fails the PR when it was forgotten.
+# If the tag for the current version already exists, the push is a no-op.
 on:
   push:
-    tags: ['v*']
-
-permissions:
-  contents: read
-  # Lets the workflow mint the OIDC token that npm Trusted Publishing
-  # exchanges for publish rights — no NPM_TOKEN secret involved.
-  id-token: write
+    branches: [stable]
+  pull_request:
+    branches: [stable]
 
 jobs:
-  publish:
+  # PR gate: merging without a version bump would release nothing.
+  version-check:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-tags: true
+      - name: Fail if this version is already tagged
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::v$VERSION is already released — bump \"version\" in package.json."
+            exit 1
+          fi
+
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the version tag, create the GitHub Release
+      # Lets the workflow mint the OIDC token that npm Trusted Publishing
+      # exchanges for publish rights — no NPM_TOKEN secret involved.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-tags: true
+      - name: Read version, skip if already tagged
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: pnpm/action-setup@v4
+        if: steps.version.outputs.new == 'true'
         with:
           version: 11
       - uses: actions/setup-node@v5
+        if: steps.version.outputs.new == 'true'
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - if: steps.version.outputs.new == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.version.outputs.new == 'true'
+        run: pnpm build
       # npm (not pnpm) talks to the registry: it handles the trusted-publishing
       # OIDC exchange itself and attaches a provenance attestation. Staging
       # needs npm ≥ 11.15, newer than some Node-bundled versions.
-      - run: npm install -g npm@latest
-      - run: npm stage publish
+      - if: steps.version.outputs.new == 'true'
+        run: npm install -g npm@latest
+      - if: steps.version.outputs.new == 'true'
+        run: npm stage publish
+      # Stamp only after a successful stage, so a failed build can be retried
+      # by re-running the workflow without deleting tags.
+      - name: Stamp tag and GitHub Release
+        if: steps.version.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "threedeezee v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+          gh release create "v${{ steps.version.outputs.version }}" --generate-notes
