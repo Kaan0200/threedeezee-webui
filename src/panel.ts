@@ -38,7 +38,7 @@ export function createPanel(canvas: Canvas, options: PanelOptions): Panel {
   if (width !== undefined) el.style.width = `${width}px`;
   if (height !== undefined) el.style.height = `${height}px`;
 
-  function moveTo(nextX: number, nextY: number) {
+  function moveTo(nextX: number, nextY: number): void {
     x = nextX;
     y = nextY;
     el.style.left = `${x}px`;

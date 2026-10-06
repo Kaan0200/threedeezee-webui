@@ -16,8 +16,8 @@
  */
 import gsap from 'gsap';
 
-import { trackDrag } from './drag';
 import type { ToPlaneDelta } from './drag';
+import { trackDrag } from './drag';
 
 /** A wrapping surface: one SVG tile, repeated every `pitch` px. */
 export type Surface = {
@@ -95,9 +95,10 @@ type CameraState = {
   z: number; // dolly: distance of the camera rig from the lens
 };
 
-/** Build the camera rig inside `container`, which must have a size. */
+/** Build the camera rig inside `container`, which must have a size (for a
+    shadow root, its host must). */
 export function createCanvas(
-  container: HTMLElement,
+  container: HTMLElement | ShadowRoot,
   options: CanvasOptions = {},
 ): Canvas {
   const {
@@ -153,7 +154,7 @@ export function createCanvas(
   // moves its pan slower — a physical parallax under the board.
   gsap.set(backdrop, { z: -backdropDepth });
 
-  function paintPlane(el: HTMLElement, { pitch, tile }: Surface) {
+  function paintPlane(el: HTMLElement, { pitch, tile }: Surface): void {
     el.style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(tile)}")`;
     el.style.backgroundSize = `${pitch}px ${pitch}px`;
   }
@@ -164,7 +165,7 @@ export function createCanvas(
   // cover all of it the lens can see when dollied fully out, centred under
   // the screen. Its offset snaps to the tile pitch so the pattern stays
   // registered to world coordinates across resizes.
-  function fitPlane(el: HTMLElement, pitch: number, depth: number) {
+  function fitPlane(el: HTMLElement, pitch: number, depth: number): void {
     const { width, height } = viewport.getBoundingClientRect();
     // Ray/plane intersection for the lens ray through the top screen edge —
     // the farthest-reaching one: it lands t× the screen distance out.
@@ -190,7 +191,7 @@ export function createCanvas(
   // The content layer takes the real pan; the patterned planes take it modulo
   // their pitch, which looks identical (whole tiles are indistinguishable)
   // but keeps them from ever sliding out from under the lens.
-  function renderPan() {
+  function renderPan(): void {
     gsap.set(world, { x: view.x, y: view.y });
     gsap.set(ground, { x: wrapGround(view.x), y: wrapGround(view.y) });
     gsap.set(backdrop, { x: wrapBackdrop(view.x), y: wrapBackdrop(view.y) });
@@ -222,7 +223,10 @@ export function createCanvas(
   // (Approximated at the plane centre — it ignores the extra depth from a
   //  point's distance toward the horizon; full accuracy needs ray/plane
   //  unprojection.)
-  function screenToPlaneDelta(dxScreen: number, dyScreen: number) {
+  function screenToPlaneDelta(
+    dxScreen: number,
+    dyScreen: number,
+  ): ReturnType<ToPlaneDelta> {
     const scale = perspective / (perspective - state.z);
     return {
       dx: dxScreen / scale,
@@ -237,7 +241,7 @@ export function createCanvas(
   // The world point under the screen centre is (viewport centre - pan): the
   // tilt pivots and the dolly travels through that centre, so this holds at
   // any zoom. Keep it inside the world extent on each bounded axis.
-  function clampPan() {
+  function clampPan(): void {
     const halfW = viewport.clientWidth / 2;
     const halfH = viewport.clientHeight / 2;
     if (worldWidth !== undefined) {
@@ -248,7 +252,7 @@ export function createCanvas(
     }
   }
 
-  function applyPan() {
+  function applyPan(): void {
     gsap.to(view, {
       x: state.panX,
       y: state.panY,
@@ -259,7 +263,7 @@ export function createCanvas(
     });
   }
 
-  function onWheel(e: WheelEvent) {
+  function onWheel(e: WheelEvent): void {
     e.preventDefault();
 
     // Scroll up = dolly in (toward the surface); scroll down = dolly out.
@@ -295,7 +299,7 @@ export function createCanvas(
   });
 
   // The listeners all live on the viewport, so removing it releases them.
-  function destroy() {
+  function destroy(): void {
     resizeObserver.disconnect();
     gsap.killTweensOf([view, camera]);
     viewport.remove();

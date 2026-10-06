@@ -1,7 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
-const src = (path: string) => fileURLToPath(new URL(`../../src/${path}`, import.meta.url));
+const src = (path: string) =>
+  fileURLToPath(new URL(`../../src/${path}`, import.meta.url));
 
 // The example site. The package's two entry points resolve to the library
 // source, so edits in src/ show up live; the imports read exactly as they

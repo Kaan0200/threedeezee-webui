@@ -1,0 +1,42 @@
+name: CI
+
+# The checks a release must pass: lint clean, build, tests green, coverage at
+# its floor. Runs twice per release — on the PR into `stable`, and again from
+# publish.yml (via workflow_call) on the merged commit, before anything is
+# staged on npm. Kept out of publish.yml so that workflow stays the minimal
+# trusted publisher.
+on:
+  pull_request:
+    branches: [stable]
+  workflow_call:
+
+# A new push to a PR supersedes the run still in flight. A release run is
+# never cancelled: it queues behind the one before it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Check-only twin of `pnpm lint`: prettier --check + eslint, no writes.
+      - run: pnpm lint:check
+      # Type-checks src (tsc), bundles, and emits declarations — the same
+      # build the release job publishes.
+      - run: pnpm build
+      # Story tests run in a real browser; unit tests need nothing extra.
+      - run: pnpm exec playwright install --with-deps chromium
+      # Also fails if coverage drops below the floor in vitest.config.ts.
+      - run: pnpm test:coverage

@@ -4,9 +4,10 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     lib: {
-      entry: 'src/index.ts',
+      // Two entry points: the engine, and the custom elements built on it.
+      entry: { threedeezee: 'src/index.ts', elements: 'src/elements.ts' },
       formats: ['es'],
-      fileName: 'threedeezee',
+      fileName: (_format, entryName) => `${entryName}.mjs`,
       cssFileName: 'style',
     },
     rollupOptions: {
