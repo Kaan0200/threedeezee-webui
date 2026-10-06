@@ -8,7 +8,8 @@ name: Stage npm release
 # "Allow npm dist-tag" granted.
 #
 # npm versions are immutable, so each release PR must bump "version" in
-# package.json; the version-check job fails the PR when it was forgotten.
+# package.json; the version-check job fails the PR when the number matches
+# what `stable` already has, or a version that was already released.
 # If the tag for the current version already exists, the push is a no-op.
 on:
   push:
@@ -27,6 +28,20 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-tags: true
+      # Compared against `stable` itself, not just the tags: a tag only exists
+      # once a release has been staged, so a merge whose release failed (or is
+      # still running) would otherwise let the same number through again.
+      - name: Fail if the version is unchanged from the base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          git fetch --depth=1 origin "refs/heads/$BASE_REF"
+          BASE_VERSION=$(git show FETCH_HEAD:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")
+          if [ "$VERSION" = "$BASE_VERSION" ]; then
+            echo "::error::$BASE_REF is already at $VERSION — bump \"version\" in package.json."
+            exit 1
+          fi
       - name: Fail if this version is already tagged
         run: |
           VERSION=$(node -p "require('./package.json').version")
