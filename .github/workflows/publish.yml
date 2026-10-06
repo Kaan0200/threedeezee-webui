@@ -35,7 +35,17 @@ jobs:
             exit 1
           fi
 
+  # Release gate: the merged commit must pass the same checks its PR did
+  # (ci.yml) before anything is staged. A failure here skips the release;
+  # fix forward and re-run, nothing has been tagged or published.
+  checks:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   release:
+    needs: checks
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
