@@ -2,7 +2,8 @@ import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-const src = (path: string) => fileURLToPath(new URL(`../../src/${path}`, import.meta.url));
+const src = (path: string) =>
+  fileURLToPath(new URL(`../../src/${path}`, import.meta.url));
 
 // The React example site. Same wiring as the HTML example: the package's two
 // entry points resolve to the library source, so edits in src/ show up live;

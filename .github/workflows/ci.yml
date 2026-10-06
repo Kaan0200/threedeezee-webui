@@ -1,0 +1,34 @@
+name: CI
+
+# PR gate for `stable`: a release PR must lint clean and build before it can
+# merge (and so before publish.yml stages it on npm). Kept out of publish.yml
+# so that workflow stays the minimal trusted publisher.
+on:
+  pull_request:
+    branches: [stable]
+
+# A new push to the PR supersedes the run still in flight.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Check-only twin of `pnpm lint`: prettier --check + eslint, no writes.
+      - run: pnpm lint:check
+      # Type-checks src (tsc), bundles, and emits declarations — the same
+      # build the release job publishes.
+      - run: pnpm build

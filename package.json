@@ -41,6 +41,7 @@
     "lint:fix": "eslint ./src --ext .js,.ts --quiet --fix --ignore-path ./.gitignore",
     "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,ts,css,md,json}\" ",
     "lint": "pnpm lint:format && pnpm lint:fix ",
+    "lint:check": "prettier --loglevel warn --check \"./**/*.{js,ts,css,md,json}\" && eslint ./src --ext .js,.ts --quiet --ignore-path ./.gitignore",
     "type-check": "tsc"
   },
   "devDependencies": {
