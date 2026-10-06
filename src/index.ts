@@ -1,10 +1,10 @@
-/**
- * threedeezee — a tilted (2.5D) camera rig for ordinary DOM content.
- *
- * Import 'threedeezee/camera.css' for the structural CSS (required) and
- * 'threedeezee/theme.css' for the default look (optional).
- */
-export type { CameraConfig, CameraRig } from './camera';
-export { createCamera, initCamera } from './camera';
+import './camera.css';
+
+export type { Canvas, CanvasOptions, Surface } from './camera';
+export { createCanvas } from './camera';
 export type { DragOptions, ToPlaneDelta } from './drag';
 export { trackDrag } from './drag';
+export type { Panel, PanelOptions } from './panel';
+export { createPanel } from './panel';
+export type { FlagOptions, Pin, PinOptions } from './pin';
+export { createPin } from './pin';

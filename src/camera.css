@@ -1,48 +1,38 @@
 /*
- * Structural CSS for the tilted (2.5D) camera rig: geometry and motion only.
- * Every colour the rig renders lives in camera-theme.css — an optional
- * import; skip it and bring your own theme, or override its tokens.
- *
- * The plane-size custom properties are written by initCamera (camera.ts),
- * which owns the numbers; the values here are matching fallbacks.
+ * Structural CSS for the tilted (2.5D) camera rig, copied from
+ * dept-of-joined-game (squad-mgmt-tuari). Theme tokens that lived in that
+ * repo's theme.css are inlined here on .tdz-viewport.
  */
 
 .tdz-viewport {
-  --perspective: 1200px;
+  /* World planes. */
   --world-size: 5000px;
-  --backdrop-size: 12000px;
-  --backdrop-offset: -3500px;
 
-  /* Fill whatever container the rig was mounted in — sizing is the app's
-     call, not the engine's. */
+  /* Colour tokens (RGB triplets, combined with per-use alphas). */
+  --vital: 208 255 60; /* lime — debug markers */
+
+  /* Fills its container, which must have a size. No background: the
+     container's own shows through, so style that instead. */
   width: 100%;
   height: 100%;
   overflow: hidden;
   /* Camera surface: drags must never start a text selection. */
   user-select: none;
-  /* The lens: establishes the 3D viewing frustum for the tilted camera.
-     Smaller = stronger foreshortening. */
-  perspective: var(--perspective);
+  /* The lens (CSS perspective) is set inline from the `perspective` option
+     in camera.ts, so the JS maths and the rendering share one value. */
 }
 
 .tdz-camera {
   /* Viewport-sized rig so the tilt pivots around the screen centre, not the
-     centre of the world plane. Carries the fixed rotateX tilt + the dolly (z). */
+     centre of the 5000px world. Carries the fixed rotateX tilt + the dolly (z). */
   width: 100%;
   height: 100%;
   transform-origin: center center;
   transform-style: preserve-3d;
 }
 
-.tdz-camera,
-.tdz-world,
-.tdz-backdrop {
-  /* Wheel and drag retarget the transform on every event; the transition
-     chases the latest target, an eased trailing follow. */
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform;
-}
-
+/* The content layer. Pan is unbounded, so its size is only a layout box for
+   positioning content — nothing clips or paints at its edges. */
 .tdz-world {
   width: var(--world-size);
   height: var(--world-size);
@@ -50,31 +40,22 @@
   transform-style: preserve-3d;
 }
 
-/* Parallax backdrop: pushed back along the tilt normal via a negative
-   translateZ in camera.ts, so it pans slower than the world. Its children
-   are the consumer's parallax scenery. */
-.tdz-backdrop {
+/* The two wrapping surfaces. Their pattern (tile shape, colour, pitch) is set
+   inline from the `ground` / `backdrop` options in camera.ts; each is sized to
+   cover the lens and wrapped there, so it never runs out. */
+.tdz-ground {
   position: absolute;
-  width: var(--backdrop-size);
-  height: var(--backdrop-size);
-  left: var(--backdrop-offset);
-  top: var(--backdrop-offset);
-  /* Children may carry real depth below this plane. */
-  transform-style: preserve-3d;
-  /* Pure scenery — exclude this whole layer (and its children) from hit
-     testing. Pointer events fall through to the viewport, whose listeners
-     drive panning, so nothing is lost and the huge plane never gets
-     hit-tested. */
   pointer-events: none;
 }
 
-/* The content plate: where createCamera parks the container's adopted
-   children on the world plane. Defaults to the world centre (which is also
-   the default camera centre) so zero-config content lands on screen;
-   reposition it from your own stylesheet to taste. */
-.tdz-plate {
+/* Parallax backdrop: sits behind the board (pushed back along the tilt normal
+   via a negative translateZ in camera.ts) so it pans slower than the world. */
+.tdz-backdrop {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  translate: -50% -50%;
+  /* Children may carry real depth below this plane. */
+  transform-style: preserve-3d;
+  /* Pure scenery — exclude this whole layer (and its children) from hit
+     testing. Pointer events fall through to .tdz-viewport, whose listeners drive
+     panning, so nothing is lost and the huge plane never gets hit-tested. */
+  pointer-events: none;
 }

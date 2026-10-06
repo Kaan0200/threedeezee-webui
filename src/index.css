@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The canvas fills its container, so give the demo's container the screen. */
+#app {
+  height: 100vh;
+}
