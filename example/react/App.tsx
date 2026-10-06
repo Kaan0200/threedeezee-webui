@@ -33,7 +33,7 @@ export default function App() {
           <WorldPanel canvas={canvas} x={2200} y={2380} width={600}>
             <h1 style={{ margin: '0 0 8px', fontSize: 32 }}>Welcome to threedeezee</h1>
             <p style={{ margin: 0 }}>
-              A tilted 2.5D canvas for the web, from React. Drag to pan, scroll to zoom —
+              A tilted 2.5D canvas for the web and React. Drag to pan, scroll to zoom —
               and click the pins: {raised.size} of {PINS.length} flags raised.
             </p>
           </WorldPanel>

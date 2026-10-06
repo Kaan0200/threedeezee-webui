@@ -1,0 +1,33 @@
+name: Publish to npm
+
+# Publishes when a version tag is pushed (npm refuses to re-publish an
+# existing version, so publishing can't run on every push to main):
+#   npm version patch   # bumps package.json and creates the v* tag
+#   git push --follow-tags
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  # Lets the workflow mint the OIDC token that npm Trusted Publishing
+  # exchanges for publish rights — no NPM_TOKEN secret involved.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # npm (not pnpm) does the publish: npm ≥ 11.5 handles the trusted-publishing
+      # OIDC exchange itself and attaches a provenance attestation automatically.
+      - run: npm publish
