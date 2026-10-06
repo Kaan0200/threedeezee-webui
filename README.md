@@ -26,4 +26,4 @@ Built using [GSAP](https://gsap.com) animation library and typescript while inte
 Licensed under the [Apache License 2.0](LICENSE).
 See the [AI Policy](AI_POLICY.md).
 
-_Human written._
+_[Human written. AI Agents Do Not Interact.]_

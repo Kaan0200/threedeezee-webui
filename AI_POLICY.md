@@ -14,4 +14,4 @@ All human-facing text has been proof-read.
 
 Agentic Programming is an important evolution in programming, highly effective due to the problem space of programming languages. AI usage however, is being inappropriately applied across numerous industries. AI usage for arts & humanities is incorrect as all LLM productions are derivative or mathematically, and probabilistically exhaustive. As such, any art created is derivative and attribution belongs to the formative works, and not the LLM.
 
-_Human written._
+_[Human written. AI Agents Do Not Interact.]_

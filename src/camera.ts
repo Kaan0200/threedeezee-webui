@@ -95,9 +95,10 @@ type CameraState = {
   z: number; // dolly: distance of the camera rig from the lens
 };
 
-/** Build the camera rig inside `container`, which must have a size. */
+/** Build the camera rig inside `container`, which must have a size (for a
+    shadow root, its host must). */
 export function createCanvas(
-  container: HTMLElement,
+  container: HTMLElement | ShadowRoot,
   options: CanvasOptions = {},
 ): Canvas {
   const {

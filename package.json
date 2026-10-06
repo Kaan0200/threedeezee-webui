@@ -14,10 +14,15 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/threedeezee.mjs"
     },
+    "./elements": {
+      "types": "./dist/elements.d.ts",
+      "import": "./dist/elements.mjs"
+    },
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./dist/elements.mjs"
   ],
   "repository": {
     "type": "git",
@@ -31,6 +36,8 @@
     "example:html:build": "vite build --config example/html/vite.config.ts",
     "example:react:dev": "vite --config example/react/vite.config.ts",
     "example:react:build": "vite build --config example/react/vite.config.ts",
+    "example:lit:dev": "vite --config example/lit/vite.config.ts",
+    "example:lit:build": "vite build --config example/lit/vite.config.ts",
     "lint:fix": "eslint ./src --ext .js,.ts --quiet --fix --ignore-path ./.gitignore",
     "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,ts,css,md,json}\" ",
     "lint": "pnpm lint:format && pnpm lint:fix ",
@@ -50,6 +57,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^4.2.5",
     "eslint-plugin-simple-import-sort": "^7.0.0",
+    "lit": "^3.3.3",
     "postcss": "^8.5.28",
     "postcss-import": "^14.1.0",
     "prettier": "^2.8.8",
