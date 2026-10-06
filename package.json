@@ -1,6 +1,6 @@
 {
   "name": "threedeezee",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tilted 2.5D camera rig for ordinary DOM content — pan, dolly, and parallax without dictating how you draw.",
   "files": [
     "dist",
