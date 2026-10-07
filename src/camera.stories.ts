@@ -94,6 +94,14 @@ export const Bounded: StoryObj<CanvasOptions> = {
   args: { worldWidth: 5000, worldHeight: 5000 },
 };
 
+// Wheel pans instead of zooming (two-finger scroll on a touchpad pans both
+// axes; Shift+wheel pans sideways on a mouse). Ctrl/⌘+wheel or a touchpad
+// pinch zooms. Drag is off, so the wheel is the only way to pan.
+export const WheelPan: StoryObj<CanvasOptions> = {
+  name: 'Controls: wheel pans',
+  args: { controls: { wheel: 'pan', drag: false } },
+};
+
 // Swapped surface patterns: each is one SVG tile, so shape and colour are
 // whatever the markup draws. Pitch sets both the tile size and wrap step.
 export const CustomSurfaces: StoryObj<CanvasOptions> = {

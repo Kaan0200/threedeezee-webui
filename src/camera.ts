@@ -8,8 +8,9 @@
  *   .tdz-ground     the ground plane's dot field (wraps, so it never runs out)
  *   .tdz-backdrop   parallax plane pushed back along the tilt normal (also wraps)
  *
- * Wheel dollies the rig toward/away from the surface; a drag anywhere pans the
- * world across the tilted ground plane. Pan is unbounded: the patterned planes
+ * By default the wheel dollies the rig toward/away from the surface and a drag
+ * anywhere pans the world across the tilted ground plane (see Controls; panBy
+ * and dollyBy let callers build their own inputs). Pan is unbounded: the patterned planes
  * only ever translate by the pan modulo their tile pitch, so they stay put
  * under the lens while the content layer takes the real pan. Structural CSS
  * lives in camera.css.
@@ -75,6 +76,18 @@ export type CanvasOptions = {
   ground?: Surface;
   /** Pattern on the parallax backdrop. Default: darker grey corner ticks. */
   backdrop?: Surface;
+  /** Built-in inputs. Turn any off to drive the camera yourself through
+      panBy/dollyBy. Default: wheel zooms, drag pans. */
+  controls?: Controls;
+};
+
+export type Controls = {
+  /** 'zoom': wheel dollies. 'pan': wheel (and two-finger touchpad scroll)
+      pans, and Ctrl/⌘+wheel (and touchpad pinch) dollies. false: no wheel
+      handling. Default 'zoom'. */
+  wheel?: 'zoom' | 'pan' | false;
+  /** Drag anywhere to pan. Default true. */
+  drag?: boolean;
 };
 
 export type Canvas = {
@@ -84,6 +97,11 @@ export type Canvas = {
       current dolly. Hand this to trackDrag for anything draggable on the
       world plane, so its motion stays 1:1 with the cursor at any zoom. */
   screenToPlaneDelta: ToPlaneDelta;
+  /** Pan by a plane-space delta, clamped to the world extent. Eases by
+      default; pass `immediate` when calling every frame (e.g. edge pan). */
+  panBy(dx: number, dy: number, opts?: { immediate?: boolean }): void;
+  /** Dolly by a z delta (+ = in, toward the surface), clamped to the range. */
+  dollyBy(dz: number): void;
   /** Stop all motion and listeners, and remove the rig from the container. */
   destroy(): void;
 };
@@ -113,6 +131,7 @@ export function createCanvas(
     worldHeight,
     ground: groundSurface = DEFAULT_GROUND,
     backdrop: backdropSurface = DEFAULT_BACKDROP,
+    controls: { wheel = 'zoom', drag = true } = {},
   } = options;
   const tiltRad = (tilt * Math.PI) / 180;
   const zCap = Math.min(zMax, perspective - 300);
@@ -259,21 +278,26 @@ export function createCanvas(
     });
   }
 
-  function onWheel(e: WheelEvent) {
-    e.preventDefault();
+  function panBy(dx: number, dy: number, { immediate = false } = {}) {
+    state.panX += dx;
+    state.panY += dy;
+    clampPan();
+    if (!immediate) {
+      applyPan();
+      return;
+    }
+    gsap.killTweensOf(view);
+    view.x = state.panX;
+    view.y = state.panY;
+    renderPan();
+  }
 
-    // Scroll up = dolly in (toward the surface); scroll down = dolly out.
-    // NOTE: this dollies toward the screen centre, not the cursor — cursor-
-    // anchored dolly on a tilted plane needs ray/plane un-projection (TODO).
-    // Proportional to the wheel delta, so a touchpad's stream of small deltas
-    // doesn't each count as a full notch. Line-mode deltas (Firefox mice)
-    // come in ~3 per notch; scale them up to pixels.
-    const deltaPx = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? e.deltaY * 33 : e.deltaY;
-    const deltaZ = (-deltaPx / 100) * dollyStep;
-    state.z = Math.min(Math.max(state.z + deltaZ, zMin), zCap);
-
-    // Dolly moves the whole tilted rig toward/away from the lens; perspective
-    // does the size change, so it reads as flying in/out over the surface.
+  // Dolly moves the whole tilted rig toward/away from the lens; perspective
+  // does the size change, so it reads as flying in/out over the surface.
+  // NOTE: this dollies toward the screen centre, not the cursor — cursor-
+  // anchored dolly on a tilted plane needs ray/plane un-projection (TODO).
+  function dollyBy(dz: number) {
+    state.z = Math.min(Math.max(state.z + dz, zMin), zCap);
     gsap.to(camera, {
       z: state.z,
       duration: 0.4,
@@ -282,17 +306,38 @@ export function createCanvas(
     });
   }
 
-  viewport.addEventListener('wheel', onWheel, { passive: false });
+  function onWheel(e: WheelEvent) {
+    e.preventDefault();
+
+    // Line-mode deltas (Firefox mice) come in ~3 per notch; scale them up to
+    // pixels.
+    const scale = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? 33 : 1;
+    const deltaX = e.deltaX * scale;
+    const deltaY = e.deltaY * scale;
+
+    // Pan mode: scroll moves the view like a page (content slides the other
+    // way). Ctrl/⌘ falls through to dolly — touchpad pinch arrives as
+    // ctrlKey + wheel, so pinch zooms too.
+    if (wheel === 'pan' && !e.ctrlKey && !e.metaKey) {
+      const { dx, dy } = screenToPlaneDelta(deltaX, deltaY);
+      panBy(-dx, -dy);
+      return;
+    }
+
+    // Scroll up = dolly in (toward the surface); scroll down = dolly out.
+    // Proportional to the wheel delta, so a touchpad's stream of small deltas
+    // doesn't each count as a full notch.
+    dollyBy((-deltaY / 100) * dollyStep);
+  }
+
+  if (wheel) viewport.addEventListener('wheel', onWheel, { passive: false });
   // Camera pan: a grab anywhere slides the world across the ground plane.
   // (Content that wants its own drag should stopPropagation on pointerdown.)
-  trackDrag(viewport, screenToPlaneDelta, {
-    onMove(dx, dy) {
-      state.panX += dx;
-      state.panY += dy;
-      clampPan();
-      applyPan();
-    },
-  });
+  if (drag) {
+    trackDrag(viewport, screenToPlaneDelta, {
+      onMove: (dx, dy) => panBy(dx, dy),
+    });
+  }
 
   // The listeners all live on the viewport, so removing it releases them.
   function destroy() {
@@ -301,5 +346,5 @@ export function createCanvas(
     viewport.remove();
   }
 
-  return { world, screenToPlaneDelta, destroy };
+  return { world, screenToPlaneDelta, panBy, dollyBy, destroy };
 }

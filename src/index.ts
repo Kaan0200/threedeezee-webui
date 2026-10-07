@@ -1,6 +1,6 @@
 import './camera.css';
 
-export type { Canvas, CanvasOptions, Surface } from './camera';
+export type { Canvas, CanvasOptions, Controls, Surface } from './camera';
 export { createCanvas } from './camera';
 export type { DragOptions, ToPlaneDelta } from './drag';
 export { trackDrag } from './drag';
