@@ -1,9 +1,9 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "types": ["vite/client"],
     "paths": {
-      "threedeezee": ["../src/index.ts"]
+      "threedeezee": ["../../src/index.ts"]
     }
   },
   "include": ["."],

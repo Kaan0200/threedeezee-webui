@@ -1,9 +1,11 @@
 import './camera.css';
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { expect, fireEvent, waitFor } from 'storybook/test';
 
 import type { Canvas, CanvasOptions } from './camera';
 import { createCanvas } from './camera';
+import { dollyOf, drag, panOf, rigOf } from './story-utils';
 
 // Plain-HTML stories get no cleanup hook, and every control change re-renders,
 // so tear down the previous canvas before building the next.
@@ -121,5 +123,67 @@ export const CustomSurfaces: StoryObj<CanvasOptions> = {
         <path d="M0 .5h240M.5 0v240" stroke="#0a7c8c"/>
       </svg>`,
     },
+  },
+};
+
+// ── Interaction tests ──────────────────────────────────────────────────────
+// Stories whose `play` function drives the rig and asserts on the result.
+// `pnpm test` runs them headless; in Storybook they report in the sidebar and
+// replay step by step in the Interactions panel.
+
+export const TestDragPans: StoryObj<CanvasOptions> = {
+  name: 'Test: drag pans 1:1 with the cursor',
+  play: async ({ canvasElement, args }) => {
+    const { viewport, world } = await rigOf(canvasElement);
+    const before = panOf(world);
+    await drag(viewport, 120, 60);
+    // At the natural height (z 0) the lens doesn't magnify, so x is 1:1; y is
+    // stretched to undo the tilt's foreshortening.
+    const tiltRad = ((args.tilt ?? 30) * Math.PI) / 180;
+    await waitFor(() => {
+      expect(panOf(world).x).toBeCloseTo(before.x + 120);
+      expect(panOf(world).y).toBeCloseTo(before.y + 60 / Math.cos(tiltRad));
+    });
+  },
+};
+
+export const TestWheelDollies: StoryObj<CanvasOptions> = {
+  name: 'Test: wheel dollies within zMin…zMax',
+  play: async ({ canvasElement, args }) => {
+    const { viewport, camera } = await rigOf(canvasElement);
+    const { dollyStep = 200, zMin = -4000 } = args;
+    // One notch up (100px of wheel delta) dollies in by one step.
+    await fireEvent.wheel(viewport, { deltaY: -100 });
+    await waitFor(() => expect(dollyOf(camera)).toBeCloseTo(dollyStep));
+    // Far more notches down than the range holds: stops at zMin.
+    await fireEvent.wheel(viewport, { deltaY: 100000 });
+    await waitFor(() => expect(dollyOf(camera)).toBeCloseTo(zMin));
+  },
+};
+
+export const TestZoomLock: StoryObj<CanvasOptions> = {
+  name: 'Test: collapsed dolly range locks zoom',
+  args: PanOnly.args,
+  play: async ({ canvasElement }) => {
+    const { viewport, camera } = await rigOf(canvasElement);
+    expect(dollyOf(camera)).toBe(-800);
+    await fireEvent.wheel(viewport, { deltaY: -300 });
+    await fireEvent.wheel(viewport, { deltaY: 300 });
+    expect(dollyOf(camera)).toBe(-800);
+  },
+};
+
+export const TestBoundedPan: StoryObj<CanvasOptions> = {
+  name: 'Test: bounded pan stops at the world edge',
+  args: Bounded.args,
+  play: async ({ canvasElement }) => {
+    const { viewport, world } = await rigOf(canvasElement);
+    // Drag right/down by more than the whole world: the world's (0, 0) corner
+    // stops under the screen centre.
+    await drag(viewport, 10000, 10000);
+    await waitFor(() => {
+      expect(panOf(world).x).toBeCloseTo(viewport.clientWidth / 2);
+      expect(panOf(world).y).toBeCloseTo(viewport.clientHeight / 2);
+    });
   },
 };

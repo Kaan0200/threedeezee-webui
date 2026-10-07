@@ -1,11 +1,13 @@
 import './camera.css';
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { expect, userEvent } from 'storybook/test';
 
 import type { Canvas } from './camera';
 import { createCanvas } from './camera';
 import type { PinOptions } from './pin';
 import { createPin } from './pin';
+import { drag, panOf, rigOf } from './story-utils';
 
 // Plain-HTML stories get no cleanup hook, and every control change re-renders,
 // so tear down the previous canvas before building the next.
@@ -58,5 +60,27 @@ export const Pennant: StoryObj<PinOptions> = {
       color: 'blue',
       shape: 'polygon(0 0, 100% 50%, 0 100%)',
     },
+  },
+};
+
+// ── Interaction tests ──────────────────────────────────────────────────────
+// See camera.stories.ts: run by `pnpm test`, replayable in Storybook.
+
+export const TestFlagClicks: StoryObj<PinOptions> = {
+  name: 'Test: flag takes clicks without panning',
+  args: Red.args,
+  play: async ({ canvasElement }) => {
+    const { world } = await rigOf(canvasElement);
+    // The pin is the world's only child here; the flag is the pin's.
+    const flag = world.querySelector<HTMLElement>(':scope > div > div')!;
+    const before = panOf(world);
+
+    await userEvent.click(flag);
+    expect(flag.style.background).toBe('white');
+
+    // A press that starts on the flag is swallowed there, so moving with it
+    // held never becomes a camera pan.
+    await drag(flag, 150, 0);
+    expect(panOf(world)).toEqual(before);
   },
 };
