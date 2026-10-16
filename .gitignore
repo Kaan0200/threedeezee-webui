@@ -7,3 +7,7 @@ node_modules/*
 .claude/
 storybook-static
 coverage
+
+# [epiq]: local hydrated state is never committed
+.epiq/events/
+.epiq/log/
